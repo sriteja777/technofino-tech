@@ -1,4 +1,3 @@
-\
 # Sample Q&A Session
 
 This file shows an example of the interactive Q&A session you can have with the Technofino Thread Summarizer after it has processed a thread.
