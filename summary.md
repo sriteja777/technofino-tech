@@ -1,6 +1,8 @@
 # Example Summary of a thread
  
- Summary of: https://www.technofino.in/community/threads/which-debit-card-to-use-for-credit-card-bill-payment-in-june-2025.38397/\n\nThis is a detailed summary of a lengthy forum discussion on Technofino, focusing on strategies for maximizing credit card bill payment rewards using various debit cards in June 2025.
+ Summary of: https://www.technofino.in/community/threads/which-debit-card-to-use-for-credit-card-bill-payment-in-june-2025.38397/
+ 
+ This is a detailed summary of a lengthy forum discussion on Technofino, focusing on strategies for maximizing credit card bill payment rewards using various debit cards in June 2025.
 
 **Key Points:**
 

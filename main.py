@@ -10,6 +10,7 @@ import json # Added for caching
 from pathlib import Path # Added for caching
 import datetime # Added for caching
 import hashlib # Added for caching
+from colorama import Fore, init # Added for colored output
 
 # Load environment variables from .env file
 load_dotenv() # Added
@@ -53,14 +54,14 @@ def load_from_cache(cache_filepath, expiry_days):
             if timestamp_str:
                 timestamp = datetime.datetime.fromisoformat(timestamp_str)
                 if (datetime.datetime.now() - timestamp).days < expiry_days:
-                    print(f"Cache hit: Loading messages from {cache_filepath}")
+                    print(f"{Fore.GREEN}Cache hit: Loading messages from {cache_filepath}{Fore.RESET}")
                     return cache_data.get("messages")
                 else:
-                    print(f"Cache expired: {cache_filepath}")
+                    print(f"{Fore.YELLOW}Cache expired: {cache_filepath}{Fore.RESET}")
             else:
-                print(f"Cache invalid (no timestamp): {cache_filepath}")
+                print(f"{Fore.YELLOW}Cache invalid (no timestamp): {cache_filepath}{Fore.RESET}")
         except (json.JSONDecodeError, IOError) as e:
-            print(f"Error loading cache file {cache_filepath}: {e}")
+            print(f"{Fore.RED}Error loading cache file {cache_filepath}: {e}{Fore.RESET}")
     return None
 
 def save_to_cache(cache_filepath, messages):
@@ -73,9 +74,9 @@ def save_to_cache(cache_filepath, messages):
     try:
         with open(cache_filepath, 'w') as f:
             json.dump(cache_data, f)
-        print(f"Messages cached to {cache_filepath}")
+        print(f"{Fore.GREEN}Messages cached to {cache_filepath}{Fore.RESET}")
     except IOError as e:
-        print(f"Error saving cache to {cache_filepath}: {e}")
+        print(f"{Fore.RED}Error saving cache to {cache_filepath}: {e}{Fore.RESET}")
 
 def clear_cache_dir(cache_dir):
     """Clears all files in the cache directory."""
@@ -84,12 +85,12 @@ def clear_cache_dir(cache_dir):
             if item.is_file():
                 try:
                     item.unlink()
-                    print(f"Deleted cache file: {item}")
+                    print(f"{Fore.YELLOW}Deleted cache file: {item}{Fore.RESET}")
                 except OSError as e:
-                    print(f"Error deleting cache file {item}: {e}")
-        print(f"Cache directory {cache_dir} cleared.")
+                    print(f"{Fore.RED}Error deleting cache file {item}: {e}{Fore.RESET}")
+        print(f"{Fore.GREEN}Cache directory {cache_dir} cleared.{Fore.RESET}")
     else:
-        print(f"Cache directory {cache_dir} does not exist.")
+        print(f"{Fore.YELLOW}Cache directory {cache_dir} does not exist.{Fore.RESET}")
 
 # --- Scraper ---
 
@@ -116,7 +117,7 @@ def get_canonical_url(url_str):
 def fetch_page_messages(page_url):
     """Fetches messages with their dates from a single page URL."""
     messages_with_dates = []
-    print(f"Fetching messages from: {page_url}")
+    print(f"{Fore.CYAN}Fetching messages from: {page_url}{Fore.RESET}")
     try:
         response = requests.get(page_url, headers={
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -143,7 +144,7 @@ def fetch_page_messages(page_url):
                 if content_text: # Only add if there's actual content
                     messages_with_dates.append({'date': date_str, 'content': content_text})
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching page {page_url}: {e}")
+        print(f"{Fore.RED}Error fetching page {page_url}: {e}{Fore.RESET}")
     return messages_with_dates
 
 def get_all_messages_from_thread(thread_url, use_cache, cache_dir, cache_expiry_days):
@@ -153,7 +154,7 @@ def get_all_messages_from_thread(thread_url, use_cache, cache_dir, cache_expiry_
     canonical_first_page_url = get_canonical_url(original_user_url)
     
     if original_user_url != canonical_first_page_url:
-        print(f"Normalized URL from '{original_user_url}' to '{canonical_first_page_url}' for processing.")
+        print(f"{Fore.YELLOW}Normalized URL from '{original_user_url}' to '{canonical_first_page_url}' for processing.{Fore.RESET}")
 
     cache_filepath = get_cache_filepath(canonical_first_page_url, cache_dir) # Use canonical URL for caching
 
@@ -165,14 +166,14 @@ def get_all_messages_from_thread(thread_url, use_cache, cache_dir, cache_expiry_
     all_messages_by_page = {} # Store messages keyed by page number to maintain order
 
     # Fetch the first page to get total pages and first page messages
-    print(f"Fetching initial page to determine pagination: {canonical_first_page_url}") # Use canonical URL
+    print(f"{Fore.CYAN}Fetching initial page to determine pagination: {canonical_first_page_url}{Fore.RESET}") # Use canonical URL
     try:
         response = requests.get(canonical_first_page_url, headers={ # Use canonical URL
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         })
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching initial page {canonical_first_page_url}: {e}") # Use canonical URL
+        print(f"{Fore.RED}Error fetching initial page {canonical_first_page_url}: {e}{Fore.RESET}") # Use canonical URL
         return []
 
     soup = BeautifulSoup(response.content, 'html.parser')
@@ -220,7 +221,7 @@ def get_all_messages_from_thread(thread_url, use_cache, cache_dir, cache_expiry_
         else: # No page links found, assume single page
              pass # total_pages remains 1
 
-    print(f"Total pages identified: {total_pages}")
+    print(f"{Fore.BLUE}Total pages identified: {total_pages}{Fore.RESET}")
 
     page_urls_to_fetch = []
     if total_pages > 1:
@@ -247,11 +248,11 @@ def get_all_messages_from_thread(thread_url, use_cache, cache_dir, cache_expiry_
                         page_num = int(match.group(1))
                         all_messages_by_page[page_num] = page_messages
                     else: # Fallback for URLs not matching page-X, though unlikely with current construction
-                        print(f"Warning: Could not determine page number for {url}")
+                        print(f"{Fore.YELLOW}Warning: Could not determine page number for {url}{Fore.RESET}")
                         # Append to a temporary list if page number unknown, then append at the end
                         # For now, we assume URLs will match the pattern
                 except Exception as exc:
-                    print(f'{url} generated an exception: {exc}')
+                    print(f'{Fore.RED}{url} generated an exception: {exc}{Fore.RESET}')
     
     # Combine all messages in page order
     final_messages_list = []
@@ -267,7 +268,7 @@ def get_all_messages_from_thread(thread_url, use_cache, cache_dir, cache_expiry_
 def summarize_text_with_gemini(text_to_summarize, keywords=None, model_name="models/gemini-2.0-flash"): 
     """Summarizes the given text (list of message dicts) using the Gemini API, optionally focusing on keywords."""
     if not text_to_summarize:
-        return "No text provided to summarize."
+        return f"{Fore.YELLOW}No text provided to summarize.{Fore.RESET}"
 
     model = genai.GenerativeModel(model_name)
     try:
@@ -296,17 +297,17 @@ def summarize_text_with_gemini(text_to_summarize, keywords=None, model_name="mod
             prompt_parts.append(f"Pay special attention to topics related to: {', '.join(keywords)}.")
         
         prompt_parts.append(f"The thread is from Technofino:\\n\\n{full_text}\\n\\nSummary:") # MODIFIED: \n\n{full_text}\n\n
-        prompt = "\\n".join(prompt_parts) # MODIFIED: \n
+        prompt = "\\n".join(prompt_parts) # MODIFIED: \\n
         
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
-        return f"An error occurred during summarization: {e}"
+        return f"{Fore.RED}An error occurred during summarization: {e}{Fore.RESET}"
 
 def estimate_token_count(text_data, model_name="models/gemini-2.0-flash"):
     """Estimates the token count for the given text data (list of message dicts) using the Gemini API."""
     if not text_data:
-        return 0, "No text data to count tokens for."
+        return 0, f"{Fore.YELLOW}No text data to count tokens for.{Fore.RESET}"
     
     model = genai.GenerativeModel(model_name)
     try:
@@ -331,19 +332,19 @@ def estimate_token_count(text_data, model_name="models/gemini-2.0-flash"):
             "Consider the dates of the messages to identify the most current information and highlight if some points are outdated.",
             f"The thread is from Technofino:\\n\\n{full_text}\\n\\nSummary:" # MODIFIED: \n\n{full_text}\n\n
         ]
-        content_to_count = "\\n".join(prompt_for_counting) # MODIFIED: \n
+        content_to_count = "\\n".join(prompt_for_counting) # MODIFIED: \\n
         
         response = model.count_tokens(content_to_count)
         return response.total_tokens, None
     except Exception as e:
-        return 0, f"An error occurred during token count estimation: {e}"
+        return 0, f"{Fore.RED}An error occurred during token count estimation: {e}{Fore.RESET}"
 
 def answer_question_with_gemini(thread_messages, question, model_name="models/gemini-2.0-flash"):
     """Answers a question based on the provided thread messages (list of dicts) using the Gemini API."""
     if not thread_messages:
-        return "No thread content available to answer questions."
+        return f"{Fore.YELLOW}No thread content available to answer questions.{Fore.RESET}"
     if not question:
-        return "No question provided."
+        return f"{Fore.YELLOW}No question provided.{Fore.RESET}"
 
     model = genai.GenerativeModel(model_name)
     try:
@@ -376,10 +377,12 @@ def answer_question_with_gemini(thread_messages, question, model_name="models/ge
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
-        return f"An error occurred while trying to answer the question: {e}"
+        return f"{Fore.RED}An error occurred while trying to answer the question: {e}{Fore.RESET}"
 
 # --- Main Execution --- 
 if __name__ == "__main__":
+    init(autoreset=True) # Initialize colorama
+
     parser = argparse.ArgumentParser(description="Summarize a Technofino thread.")
     # Make thread_url optional at the parser level
     parser.add_argument("thread_url", nargs='?', default=None, help="The URL of the Technofino thread to summarize. Required unless --clear-cache is used.")
@@ -404,7 +407,7 @@ if __name__ == "__main__":
         # If --clear-cache is present, thread_url is not strictly needed for this action.
         # The cache_dir argument (which has a default) will be used.
         clear_cache_dir(args.cache_dir)
-        print("Cache clearing requested. Exiting.")
+        print(f"{Fore.GREEN}Cache clearing requested. Exiting.{Fore.RESET}")
         exit(0)
 
     # If not --clear-cache, thread_url is now mandatory.
@@ -414,10 +417,10 @@ if __name__ == "__main__":
     if args.debug:
         # Corrected f-string for API key debug print
         api_key_display = f"{GEMINI_API_KEY[:5]}...{GEMINI_API_KEY[-5:]}" if len(GEMINI_API_KEY) > 10 else GEMINI_API_KEY
-        print(f"[DEBUG] Attempting to use API Key: {api_key_display}")
+        print(f"{Fore.BLUE}[DEBUG] Attempting to use API Key: {api_key_display}{Fore.RESET}")
         list_available_models()
     
-    print("Starting to scrape messages...")
+    print(f"{Fore.BLUE}Starting to scrape messages...{Fore.RESET}")
     messages = get_all_messages_from_thread(
         args.thread_url,
         use_cache=not args.no_cache,
@@ -426,16 +429,16 @@ if __name__ == "__main__":
     )
 
     if messages:
-        print(f"\\nFound {len(messages)} messages (from cache or scraping). Now summarizing...")
+        print(f"{Fore.GREEN}Found {len(messages)} messages (from cache or scraping). Now summarizing...{Fore.RESET}")
         
         user_keywords = [k.strip() for k in args.keywords.split(',')] if args.keywords else None
 
         if args.debug:
             token_count, error_msg = estimate_token_count(messages)
             if error_msg:
-                print(f"[DEBUG] Token estimation error: {error_msg}")
+                print(f"{Fore.RED}[DEBUG] Token estimation error: {error_msg}{Fore.RESET}")
             else:
-                print(f"[DEBUG] Estimated token count for summarization: {token_count}")
+                print(f"{Fore.BLUE}[DEBUG] Estimated token count for summarization: {token_count}{Fore.RESET}")
         
         summary = summarize_text_with_gemini(messages, keywords=user_keywords)
         
@@ -449,42 +452,42 @@ if __name__ == "__main__":
                         if user_keywords:
                             f.write(f"**Keywords focused:** {', '.join(user_keywords)}\\n\\n")
                     f.write(summary)
-                print(f"\\nSummary saved to: {output_path}")
+                print(f"{Fore.GREEN}Summary saved to: {output_path}{Fore.RESET}")
             except IOError as e:
-                print(f"\\nError saving summary to file: {e}")
-                print("\\n--- Summary of the Thread (Console Fallback) ---")
+                print(f"{Fore.RED}Error saving summary to file: {e}{Fore.RESET}")
+                print(f"{Fore.BLUE}--- Summary of the Thread (Console Fallback) ---{Fore.RESET}")
                 print(summary)
         else:
-            print("\\n--- Summary of the Thread ---")
+            print(f"{Fore.BLUE}--- Summary of the Thread ---{Fore.RESET}")
             print(summary)
 
         # Interactive Q&A session
         if messages: # Ensure messages were loaded before starting Q&A
             while True:
                 try:
-                    ask_qna = input("\nDo you want to ask questions about this thread? (yes/no): ").strip().lower()
+                    ask_qna = input(f"{Fore.YELLOW}Do you want to ask questions about this thread? (yes/no): {Fore.RESET}").strip().lower()
                 except EOFError: # Handle cases where input stream is closed (e.g. piping)
                     break
                 if ask_qna == 'yes':
-                    print("Entering Q&A mode. Type 'quit' to exit.")
+                    print(f"{Fore.BLUE}Entering Q&A mode. Type 'quit' to exit.{Fore.RESET}")
                     while True:
                         try:
-                            user_question = input("\nYour question: ").strip()
+                            user_question = input(f"{Fore.CYAN}Your question: {Fore.RESET}").strip()
                         except EOFError:
                             user_question = "quit"
                         if not user_question:
                             continue
                         if user_question.lower() == 'quit':
-                            print("Exiting Q&A mode.")
+                            print(f"{Fore.YELLOW}Exiting Q&A mode.{Fore.RESET}")
                             break
                         
                         answer = answer_question_with_gemini(messages, user_question)
-                        print(f"\nAnswer: {answer}")
+                        print(f"{Fore.MAGENTA}Answer: {answer}{Fore.RESET}")
                     break # Exit Q&A loop and main program after Q&A session ends
                 elif ask_qna == 'no':
-                    print("Skipping Q&A.")
+                    print(f"{Fore.YELLOW}Skipping Q&A.{Fore.RESET}")
                     break
                 else:
-                    print("Invalid input. Please answer 'yes' or 'no'.")
+                    print(f"{Fore.RED}Invalid input. Please answer 'yes' or 'no'.{Fore.RESET}")
     else:
-        print("No messages were found from the thread (or cache). Cannot summarize or start Q&A.")
+        print(f"{Fore.RED}No messages were found from the thread (or cache). Cannot summarize or start Q&A.{Fore.RESET}")
