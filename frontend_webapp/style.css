@@ -1,0 +1,109 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    margin: 20px;
+    padding: 0;
+    background-color: #f4f7f6;
+    color: #333;
+    line-height: 1.6;
+}
+
+h1, h2 {
+    color: #2c3e50;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="password"] {
+    width: calc(100% - 22px); /* Account for padding and border */
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+button {
+    background-color: #3498db;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-right: 10px;
+    margin-top: 5px;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+#statusArea {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 12px;
+    border-radius: 4px;
+    border: 1px solid transparent; /* Keep layout consistent */
+    font-weight: bold;
+}
+
+#statusArea.info { /* For neutral messages */
+    background-color: #eaf2f8;
+    border-color: #aed6f1;
+    color: #2e86c1;
+}
+
+#statusArea.success { /* For success messages */
+    background-color: #d4efdf;
+    border-color: #7dcea0;
+    color: #229954;
+}
+
+#statusArea.error { /* For error messages */
+    background-color: #fdedec;
+    border-color: #f5b7b1;
+    color: #c0392b;
+}
+
+
+#summaryResult,
+#qnaResult {
+    margin-top: 10px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    white-space: pre-wrap; /* Preserve line breaks */
+    min-height: 50px; /* Show even if empty */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+p small {
+    font-size: 0.85em;
+    color: #555;
+}
+
+/* Add a container for better centering and max-width */
+body > h1, body > div, body > button, body > h2 {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Clearfix for floated elements if any, or just good practice */
+.clearfix::after {
+    content: "";
+    clear: both;
+    display: table;
+}

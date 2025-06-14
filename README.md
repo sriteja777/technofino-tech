@@ -1,8 +1,18 @@
 # Technofino Thread Summarizer
 
-This application scrapes a discussion thread from the Technofino website, collects all messages (including their posting dates) across all pages, and then uses the Google Gemini API to generate a summary of the discussion. It also supports an interactive Q&A session about the thread content.
+This project provides tools to scrape discussion threads from the Technofino website, collect messages, and then use the Google Gemini API to generate summaries and support interactive Q&A sessions about the thread content.
 
-## Features
+It consists of two main parts:
+1.  A Command-Line Interface (CLI) tool written in Python.
+2.  A Web Application Frontend built with React.
+
+---
+
+## Command-Line Interface (CLI) Tool
+
+The CLI tool allows users to process Technofino threads directly from their terminal.
+
+### CLI Features
 
 *   **Comprehensive Scraping**: Fetches all messages from all pages of a Technofino thread.
 *   **Date-Aware Processing**: Extracts the posting date of each message and uses this information in prompts to Gemini for more relevant summaries and Q&A, helping to identify outdated information.
@@ -18,12 +28,12 @@ This application scrapes a discussion thread from the Technofino website, collec
 *   **Debug Mode**: Provides verbose output for troubleshooting.
 *   **Token Estimation**: In debug mode, estimates the number of tokens the input will consume before calling the Gemini API for summarization.
 
-## Prerequisites
+### CLI Prerequisites
 
 - Python 3.7+
 - A Google Gemini API Key
 
-## Setup
+### CLI Setup
 
 1.  **Clone the repository (or create the files as described).**
 
@@ -37,17 +47,18 @@ This application scrapes a discussion thread from the Technofino website, collec
     ```bash
     pip install -r requirements.txt
     ```
+    (Ensure `requirements.txt` is up-to-date for the CLI tool.)
 
-4.  **Set your Gemini API Key:**
-    Create a file named `.env` in the directory with the following content:
+4.  **Set your Gemini API Key for the CLI:**
+    Create a file named `.env` in the project root directory with the following content:
     ```
     GEMINI_API_KEY='YOUR_API_KEY'
     ```
-    Replace `YOUR_API_KEY` with your actual Gemini API key. The application will automatically load this key. Alternatively, if the `.env` file is not found or the key isn't in it, the application will prompt you to enter the key manually.
+    Replace `YOUR_API_KEY` with your actual Gemini API key. The CLI application will automatically load this key. Alternatively, if the `.env` file is not found or the key isn't in it, the application will prompt you to enter the key manually.
 
-## Usage
+### CLI Usage
 
-Run the main script with the Technofino thread URL as an argument:
+Run the main script (`main.py`) with the Technofino thread URL as an argument:
 
 ```bash
 python main.py <technofino_thread_url> [options]
@@ -57,44 +68,19 @@ python main.py <technofino_thread_url> [options]
 ```bash
 python main.py "https://www.technofino.in/community/threads/some-thread.12345/"
 ```
-**Note on URLs**: It's good practice to enclose the URL in quotes, especially if it contains special characters. The script will attempt to normalize the URL (e.g., `https://example.com/thread/page-2` becomes `https://example.com/thread/`) for caching and processing.
+**Note on URLs**: It's good practice to enclose the URL in quotes. The script will attempt to normalize the URL.
 
-### Options:
+#### CLI Options:
 
 *   `thread_url`: (Positional argument) The URL of the Technofino thread. Required unless `--clear-cache` is used.
-*   `--debug`: Enable debug mode. Shows API key (partial), lists available Gemini models, and prints estimated token count for summarization.
-    ```bash
-    python main.py "<url>" --debug
-    ```
+*   `--debug`: Enable debug mode.
 *   `--output-file <filepath>` or `-o <filepath>`: Save the summary to a file.
-    ```bash
-    python main.py "<url>" -o summary.txt
-    ```
-*   `--output-format <format>`: Specify the output file format. Choices: `txt`, `md`. Default: `txt`.
-    ```bash
-    python main.py "<url>" -o summary.md --output-format md
-    ```
-*   `--keywords "<keyword1,keyword2,...>"`: Focus the summary on specific comma-separated keywords.
-    ```bash
-    python main.py "<url>" --keywords "rewards,travel points,benefits"
-    ```
-*   `--no-cache`: Disable using or saving cached thread content for this run.
-    ```bash
-    python main.py "<url>" --no-cache
-    ```
-*   `--cache-dir <directory_path>`: Specify a custom directory for caching. Default: `./.cache/technofino_summarizer`.
-    ```bash
-    python main.py "<url>" --cache-dir /tmp/tf_cache
-    ```
-*   `--cache-expiry <days>`: Set the cache expiry duration in days. Default: 7 days.
-    ```bash
-    python main.py "<url>" --cache-expiry 3
-    ```
-*   `--clear-cache`: Clear all cached thread data from the specified cache directory (or default if not specified) and exit.
-    ```bash
-    python main.py --clear-cache
-    python main.py --clear-cache --cache-dir /tmp/tf_cache
-    ```
+*   `--output-format <format>`: Specify output file format (`txt`, `md`). Default: `txt`.
+*   `--keywords "<keyword1,keyword2,...>"`: Focus summary on specific keywords.
+*   `--no-cache`: Disable using or saving cached content for this run.
+*   `--cache-dir <directory_path>`: Specify custom cache directory. Default: `./.cache/technofino_summarizer`.
+*   `--cache-expiry <days>`: Set cache expiry (days). Default: 7.
+*   `--clear-cache`: Clear all cached data and exit.
 
 **Example with multiple options:**
 ```bash
@@ -102,44 +88,140 @@ python main.py "https://www.technofino.in/community/threads/another-thread.67890
 ```
 
 The script will then:
-1.  Normalize the input URL.
-2.  Check for cached content (unless `--no-cache` is used).
-3.  Scrape messages (including dates) if not using cache or cache is invalid/expired.
-4.  Save to cache (if applicable).
-5.  Generate a summary using the Gemini API, considering message dates and any specified keywords.
-6.  Print the summary to the console or save it to the specified file.
-7.  Offer an interactive Q&A session.
+1.  Normalize URL.
+2.  Check cache.
+3.  Scrape if needed.
+4.  Save to cache.
+5.  Generate summary using Gemini.
+6.  Output summary.
+7.  Offer interactive Q&A.
 
-## How it Works
+### CLI - How it Works (Brief)
 
-1.  **URL Normalization**: The input thread URL is canonicalized to its base form (e.g., first page, no anchors).
-2.  **Caching (Optional & Default)**:
-    *   The script checks for a local cache of the (normalized) thread URL.
-    *   If a valid, non-expired cache entry exists, messages are loaded from it, skipping scraping.
-    *   Cache files are stored as JSON in the specified `--cache-dir` (default: `.cache/technofino_summarizer`).
-3.  **Scraping (if needed)**:
-    *   If no valid cache, the script fetches the first page of the thread.
-    *   It extracts messages (content and posting date) and determines the total number of pages.
-    *   Messages from subsequent pages are fetched in parallel using `concurrent.futures.ThreadPoolExecutor`.
-4.  **Aggregation**: All extracted messages (dictionaries containing `date` and `content`) are collected.
-5.  **Cache Storage (if scraped)**: If messages were scraped and caching is enabled, they are saved to the cache with a timestamp.
-6.  **Summarization**:
-    *   The collected messages are formatted to include their dates.
-    *   A prompt is constructed for the Gemini API (default model: `models/gemini-1.5-flash`), including the current date and instructions to consider message recency.
-    *   If keywords are provided, the prompt is augmented to focus on those.
-    *   The API generates the summary.
-7.  **Output**: The summary is printed or saved as specified.
-8.  **Interactive Q&A (Optional)**:
-    *   The user is prompted to ask questions.
-    *   For each question, a new prompt is sent to the Gemini API, including the full thread content (with dates) and the user's question. The prompt again emphasizes considering message dates for relevance.
-    *   The session continues until the user types 'quit'.
+1.  **URL Normalization & Caching**: As described above.
+2.  **Scraping (if needed)**: Fetches pages, extracts messages (content & date). Subsequent pages fetched in parallel.
+3.  **Summarization & Q&A**: Formats messages, constructs prompts for Gemini (model: `gemini-1.5-flash-latest`), and handles API interaction.
 
-### Sample Outputs
+### CLI Sample Outputs
 
-*   **Sample Summary:** An example of the summary output can be found in the `summary.md` file in this repository. This file is generated by running the script with the `--output-format md` option.
+*   **Sample Summary:** An example of the summary output can be found in `summary.md`.
+*   **Sample Q&A Session:** An example of an interactive Q&A session can be found in `SAMPLE_QNA.md`.
+
+---
+
+## Web Application Frontend (React)
+
+A user-friendly web interface built with React to perform summarization and Q&A on Technofino threads.
+
+### Web App Overview
+
+The web application allows users to:
+*   Authenticate using their Google account.
+*   Securely save their personal Gemini API key.
+*   Input a Technofino thread URL.
+*   View a summary of the thread generated by the Gemini API.
+*   Ask follow-up questions about the thread content.
+
+All processing, including scraping and Gemini API calls, happens client-side in the user's browser.
+
+### Web App Features
+
+*   **Authentication:** Google Sign-In for user authentication.
+*   **API Key Management:** User-specific Gemini API keys are stored securely in Firestore, linked to their authenticated account.
+*   **Client-Side Scraping:** Fetches and parses Technofino thread content directly in the browser.
+    *   **Note:** Requires a browser extension to disable CORS for `technofino.in` for this feature to work.
+*   **Summarization:** Uses the Gemini API (specifically `gemini-1.5-flash-latest`) to generate thread summaries.
+*   **Q&A:** Allows users to ask questions about the summarized thread, with answers generated by the Gemini API.
+*   **Responsive UI:** Basic responsive design for usability on different screen sizes.
+
+### Prerequisites for Running Web App
+
+*   **Node.js and npm (or yarn):** For managing project dependencies and running the development server.
+*   **Firebase Project:** You'll need your own Firebase project to handle authentication and Firestore storage for API keys.
+*   **Personal Gemini API Key:** Each user will need their own Gemini API key to interact with the Gemini models.
+*   **CORS Browser Extension:** A browser extension (like "Allow CORS: Access-Control-Allow-Origin" or similar) is **required** to disable Cross-Origin Resource Sharing restrictions when fetching content from `technofino.in`. This is necessary because the scraping happens client-side.
+
+### Firebase Setup (for self-hosting or new development)
+
+If you want to run your own instance of this web application, you'll need to set up Firebase:
+
+1.  **Create Firebase Project:**
+    *   Go to the [Firebase Console](https://console.firebase.google.com/).
+    *   Click "Add project" and follow the on-screen instructions.
+
+2.  **Register Web App in Firebase:**
+    *   In your Firebase project, go to Project Overview and click the "Web" icon (`</>`) to add a web app.
+    *   Register your app (give it a nickname). You don't need to set up Firebase Hosting at this stage unless you plan to deploy it there.
+    *   After registration, Firebase will provide you with a `firebaseConfig` object. Copy this object.
+
+3.  **Enable Google Sign-In:**
+    *   In the Firebase Console, go to "Authentication" (under Build).
+    *   Navigate to the "Sign-in method" tab.
+    *   Click on "Google" in the list of providers, enable it, and select a project support email. Save.
+
+4.  **Set up Firestore Database:**
+    *   In the Firebase Console, go to "Firestore Database" (under Build).
+    *   Click "Create database".
+    *   Choose "Start in **production mode**". Click Next.
+    *   Select your Firestore location (choose one close to your users). Click Enable.
+    *   **Important: Set Firestore Security Rules:**
+        *   Go to the "Rules" tab in Firestore.
+        *   Replace the existing rules with the following to allow users to read/write their own API keys:
+            ```firestore-rules
+            rules_version = '2';
+            service cloud.firestore {
+              match /databases/{database}/documents {
+                // Allow users to read and write only their own API key document
+                match /userApiKeys/{userId} {
+                  allow read, write: if request.auth != null && request.auth.uid == userId;
+                }
+              }
+            }
+            ```
+        *   Publish these rules.
+
+5.  **Configure Web App with Firebase Details:**
+    *   Take the `firebaseConfig` object you copied in Step 2.
+    *   In the cloned repository, navigate to `frontend_webapp/react-app/src/firebaseConfig.js`.
+    *   Replace the placeholder `firebaseConfig` object in this file with your own.
+
+### Running the React Web Application
+
+1.  **Clone the Repository:**
     ```bash
-    python main.py "https://www.technofino.in/community/threads/some-thread.12345/" -o summary.md --output-format md
+    git clone <repository_url>
+    cd <repository_name>
     ```
-    The summary output will attempt to highlight key points, questions, and conclusions from the thread, noting the recency of information based on message dates.
 
-*   **Sample Q&A Session:** An example of an interactive Q&A session can be found in the `SAMPLE_QNA.md` file. This demonstrates how you can ask follow-up questions after a summary has been generated.
+2.  **Navigate to the React App Directory:**
+    ```bash
+    cd frontend_webapp/react-app
+    ```
+
+3.  **Install Dependencies:**
+    ```bash
+    npm install
+    # or if you prefer yarn:
+    # yarn install
+    ```
+
+4.  **Run the Development Server:**
+    ```bash
+    npm run dev
+    # or
+    # yarn dev
+    ```
+
+5.  **Access the Application:**
+    *   Open your browser and go to `http://localhost:5173` (or the port specified by Vite in your terminal).
+
+6.  **IMPORTANT - Disable CORS:**
+    *   Before using the summarizer, **you must disable CORS restrictions for `technofino.in` in your browser.** Use a browser extension for this.
+    *   Search for "Allow CORS" or "CORS Unblock" in your browser's extension store.
+    *   Configure the extension to allow requests to `technofino.in`. Without this, the client-side scraping will fail.
+
+Once running, you can sign in with Google, save your Gemini API key, and then use the summarizer and Q&A features.
+
+---
+
+*This README provides setup and usage instructions for both the CLI and Web App components of the Technofino Thread Summarizer.*
