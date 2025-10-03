@@ -3,6 +3,7 @@ venv/
 
 # Ignore environment variables file
 .env
+.DS_Store
 
 # Ignore cache directory
 .cache/
