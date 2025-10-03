@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technofino Thread Summarizer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Technofino Thread Summarizer</h1>
+
+    <div>
+        <label for="threadUrl">Technofino Thread URL:</label>
+        <input type="text" id="threadUrl" name="threadUrl">
+    </div>
+
+    <div>
+        <label for="apiKey">Your Gemini API Key:</label>
+        <input type="password" id="apiKey" name="apiKey">
+        <p><small>Note: You may need to disable CORS in your browser and provide a valid API key for this to work.</small></p>
+    </div>
+
+    <button id="summarizeBtn">Summarize Thread</button>
+
+    <div id="statusArea"></div>
+
+    <h2>Summary</h2>
+    <div id="summaryResult">
+        <p>Summary will appear here...</p>
+    </div>
+
+    <h2>Ask a Question</h2>
+    <div>
+        <label for="questionInput">Your Question:</label>
+        <input type="text" id="questionInput" name="questionInput">
+    </div>
+    <button id="askBtn">Ask</button>
+    <div id="qnaResult">
+        <p>Answer will appear here...</p>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+</body>
+</html>

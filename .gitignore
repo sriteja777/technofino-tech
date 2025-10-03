@@ -3,6 +3,7 @@ venv/
 
 # Ignore environment variables file
 .env
+.DS_Store
 
 # Ignore cache directory
 .cache/
@@ -12,3 +13,5 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+.idea
